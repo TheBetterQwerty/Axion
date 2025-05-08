@@ -130,5 +130,3 @@ We welcome contributions to **Axion**! If you find a bug or have a feature idea,
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-
-Feel free to modify this as needed! If you have any more details or want further changes, just let me know.
