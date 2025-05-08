@@ -36,7 +36,7 @@ Make sure you have the following installed:
 1. Clone the repository to your local machine:
 
    ```bash
-   git clone https://github.com/your-repo/axion.git
+   git clone https://github.com/TheBetterQwerty/Axion.git
    cd axion
    ```
 
@@ -51,13 +51,13 @@ Make sure you have the following installed:
 4. Run the server (make sure you have a server running on `127.0.0.1:6000`):
 
    ```bash
-   ./server/main # Assuming you have the server code
+   axion $ ./server/main # Assuming you have the server code
    ```
 
 5. Start the client:
 
    ```bash
-   ./client/main
+   axion $ ./client/main
    ```
 
 ## Usage
