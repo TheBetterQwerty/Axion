@@ -1,0 +1,11 @@
+/home/qwerty/rust/Axion/server/target/debug/deps/libgetrandom-b4f82d2616ea0847.rmeta: /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/lib.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/error.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/util.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/util_libc.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/use_file.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/lazy.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/linux_android_with_fallback.rs
+
+/home/qwerty/rust/Axion/server/target/debug/deps/getrandom-b4f82d2616ea0847.d: /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/lib.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/error.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/util.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/util_libc.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/use_file.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/lazy.rs /home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/linux_android_with_fallback.rs
+
+/home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/lib.rs:
+/home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/error.rs:
+/home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/util.rs:
+/home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/util_libc.rs:
+/home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/use_file.rs:
+/home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/lazy.rs:
+/home/qwerty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/linux_android_with_fallback.rs:

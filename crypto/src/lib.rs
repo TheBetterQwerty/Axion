@@ -5,6 +5,7 @@
 /* Imports */
 use std::io::{ self, Write};
 use sha2::{ Sha256, Digest};
+use hex::encode;
 use aes_gcm::{
     aead::{ Aead, AeadCore, KeyInit, OsRng},
     Aes256Gcm, Key, Nonce
@@ -32,7 +33,7 @@ impl Packet {
         }
     }
     
-    pub fn set_message(&mut self, key: &String, message: String) {
+    pub fn set_data(&mut self, key: &String, message: String) {
         self.hash = hash(&message);
         let (nonce, encrypted_data) = match encrypt(key, message) {
             Ok((nonce, data)) => (nonce, data),
@@ -54,13 +55,16 @@ impl Packet {
             }
         };
 
-        /* check integrity with hashing
-         * If it passes then return Ok else Err("Failed Integrity Check")
-         * */
-        
-        Ok(decrypted_message)
+        let decrypted_data_hash = hash(&decrypted_message);
+        if self.hash == decrypted_data_hash {
+            Ok(decrypted_message)
+        } else {
+            Err("Failed Integrity Check".to_owned())
+        }
     }
 }   
+
+const KEY_SIZE: usize = 32;
 
 #[allow(dead_code)]
 pub fn read_key() -> String {
@@ -73,11 +77,11 @@ pub fn read_key() -> String {
     input = input.trim().to_owned();
 
     let len = input.len();
-    if len < 32 {
-        let padding = "*".repeat(32 - len);
+    if len < KEY_SIZE {
+        let padding = "*".repeat(KEY_SIZE - len);
         return input + &padding;
-    } else if len > 32 {
-        input.truncate(32);
+    } else if len > KEY_SIZE {
+        input.truncate(KEY_SIZE);
         return input;
     } else {
         return input;
@@ -86,7 +90,7 @@ pub fn read_key() -> String {
 
 fn hash(text: &String) -> String {
     let result = Sha256::digest(text.as_bytes());
-    return format!("{:?}", result);
+    return encode(result);
 }
 
 fn encrypt(key: &String, plaintext: String) -> Result<(Vec<u8>, Vec<u8>), String> {
@@ -104,9 +108,9 @@ fn encrypt(key: &String, plaintext: String) -> Result<(Vec<u8>, Vec<u8>), String
     return Ok((nonce.to_vec(), cipher_data));
 }
 
-fn decrypt(key: &String, encrypted_data: &Vec<u8>, nonce: &Vec<u8>) -> Result<String, String> {
+fn decrypt(key: &String, encrypted_data: &[u8], nonce: &[u8]) -> Result<String, String> {
     let key = Key::<Aes256Gcm>::from_slice(key.as_bytes());
-    let nonce = Nonce::from_slice(&nonce);
+    let nonce = Nonce::from_slice(nonce);
     let cipher = Aes256Gcm::new(key);
 
     let plaintext = match cipher.decrypt(nonce, encrypted_data.as_ref()) {
