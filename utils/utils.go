@@ -20,7 +20,7 @@ type Packet struct {
 }
 
 /* Functions to be used with Packet */
-func new(sender string, reciever string) Packet {
+func New(sender string, reciever string) Packet {
 	return Packet {
 		false,
 		sender,
@@ -31,8 +31,8 @@ func new(sender string, reciever string) Packet {
 	};
 }
 
-func (pkt Packet) set_data(key []byte, data string) {
-	hash := Hash(data);
+func (pkt Packet) Set_data(key []byte, data string) {
+	_hash := hash(data);
 	ciphertext, iv, err := encrypt_data(key, data);
 	if err != nil {
 		fmt.Printf("[!] Error %s\n", err);
@@ -41,18 +41,18 @@ func (pkt Packet) set_data(key []byte, data string) {
 	pkt.Encrypted = true;
 	pkt.Data = ciphertext;
 	pkt.Nonce = iv;
-	pkt.Hash = string(hash);
+	pkt.Hash = string(_hash);
 }
 
-func (pkt Packet) decrypt_data(key []byte) (string, error) {
+func (pkt Packet) Decrypt_data(key []byte) (string, error) {
 	if plaintext, err := decrypt_AES(key, pkt.Data, pkt.Nonce); err != nil {
 		return "", err;
 	} else {
-		hash := string(Hash(plaintext));
-		if hash == pkt.Hash {
+		_hash := string(hash(plaintext));
+		if _hash == pkt.Hash {
 			return plaintext, nil;
 		} else {
-			return "", err;
+			return "Hashes dont match", nil;
 		}
 	}
 }
@@ -66,10 +66,10 @@ func GetKey() []byte {
 		panic("[!] Error getting key!");
 	}
 
-	return Hash(passwd);
+	return hash(passwd);
 }
 
-func Hash(txt string) []byte {
+func hash(txt string) []byte {
 	hash := sha256.Sum256([]byte(txt));
 	return hash[:];
 }
