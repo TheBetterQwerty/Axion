@@ -24,10 +24,16 @@ func HandleUser(sockfd net.Conn, username string, key []byte) {
 				return;
 			}
 
+			/* Handle server messages that ain't encrypted */
+			if pkt.Encrypted == false {
+				fmt.Printf("\r[ %s ] %s\n", pkt.Sender, pkt.Data);
+				continue;
+			}
+
 			// decode first
 			decode_data, err := pkt.Decrypt_data(key);
 			if err != nil {
-				fmt.Printf("[!] Error: %x\n", err);
+				fmt.Printf("[!] Error: decrypting message %x\n", err);
 				return;
 			}
 
@@ -39,7 +45,7 @@ func HandleUser(sockfd net.Conn, username string, key []byte) {
 		fmt.Printf("[ %s ] ", username);
 		input, err := axion.Fgets();
 		if err != nil {
-			fmt.Printf("[!] Error %x\n", err);
+			fmt.Printf("[!] Error getting input %x\n", err);
 			continue;
 		}
 
@@ -53,7 +59,7 @@ func HandleUser(sockfd net.Conn, username string, key []byte) {
 		}
 
 		if _, err := sockfd.Write(encoded); err != nil {
-			fmt.Printf("[!] Error %x\n", err);
+			fmt.Printf("[!] Error writting to socket %x\n", err);
 			return;
 		}
 	}

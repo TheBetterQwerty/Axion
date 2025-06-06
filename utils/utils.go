@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"crypto/cipher"
 	"encoding/hex"
+	"strings"
 	"io"
 	"fmt"
 	"bufio"
@@ -69,7 +70,7 @@ func Fgets() (string, error) {
 		return "", err;
 	}
 
-	return text, nil;
+	return strings.TrimSuffix(text, "\n"), nil;
 }
 
 func GetKey() []byte {
