@@ -26,7 +26,7 @@ func broadcast(pkt *axion.Packet) {
 		if _, err := fd.Write(encoded); err != nil {
 			fmt.Printf("[!] Error sending data to %s\n", username);
 		} else {
-			fmt.Printf("[+] Sent packet to %s\n", username);
+			fmt.Printf("[+] Sent packet to %s\n", username); // DBG
 		}
 	}
 }
@@ -47,7 +47,7 @@ func unicast(pkt *axion.Packet) {
 		if _, err := fd.Write(encoded); err != nil {
 			fmt.Printf("[!] Error sending data to %s\n", username);
 		} else {
-			fmt.Printf("[+] Sent packet to %s\n", username);
+			fmt.Printf("[+] Sent packet to %s\n", username); // DBG
 		}
 	}
 }
@@ -62,13 +62,13 @@ func handler(fd net.Conn) {
 		/* Reads packet and logs user into the server */
 		size, err := fd.Read(buffer);
 		if err != nil {
-			fmt.Printf("[!] Error reading from client!");
+			fmt.Printf("[!] Error reading from client!\n");
 			return;
 		}
 
 		var login axion.Packet
 		if err := json.Unmarshal(buffer[:size], &login); err != nil {
-			fmt.Printf("[!] Error Unmarshal the packet!");
+			fmt.Printf("[!] Error Unmarshal the packet!\n");
 			return;
 		}
 
@@ -84,13 +84,13 @@ func handler(fd net.Conn) {
 	for {
 		size, err := fd.Read(buffer);
 		if err != nil {
-			fmt.Printf("[!] Error reading from client!");
+			fmt.Printf("[!] Error reading from client!\n");
 			break;
 		}
 
 		var packet axion.Packet;
 		if err := json.Unmarshal(buffer[:size], &packet); err != nil {
-			fmt.Printf("[!] Error Unmarshal the packet!");
+			fmt.Printf("[!] Error Unmarshal the packet!\n");
 			break;
 		}
 
@@ -114,15 +114,17 @@ func handler(fd net.Conn) {
 func main() {
 	listener, err := net.Listen("tcp", ":8080");
 	if err != nil {
-		fmt.Printf("[!] Error creating socket!");
+		fmt.Printf("[!] Error creating socket\n!");
 		return;
+	} else {
+		fmt.Printf("[#] Listening on 127.0.0.1:8080\n");
 	}
 	defer listener.Close();
 
 	for {
 		socket, err := listener.Accept();
 		if err != nil {
-			fmt.Printf("[!] Error accepting client!");
+			fmt.Printf("[!] Error accepting client!\n");
 			continue;
 		}
 

@@ -4,10 +4,10 @@ server=server
 client=client
 
 server:
-	$(cc) build $(server)/main.go -o $(server)/main
+	$(cc) build -o $(server)/main $(server)/main.go
 
 client:
-	$(cc) build $(client)/main.go -o $(client)/main
+	$(cc) build -o $(client)/main $(client)/main.go
 
 clean:
 	echo "Deleting server binary"

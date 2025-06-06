@@ -31,17 +31,18 @@ func New(sender string, reciever string) Packet {
 	};
 }
 
-func (pkt Packet) Set_data(key []byte, data string) {
+func (pkt *Packet) Set_data(key []byte, data string) error {
 	_hash := hash(data);
 	ciphertext, iv, err := encrypt_data(key, data);
 	if err != nil {
 		fmt.Printf("[!] Error %s\n", err);
-		return;
+		return err;
 	}
 	pkt.Encrypted = true;
 	pkt.Data = ciphertext;
 	pkt.Nonce = iv;
 	pkt.Hash = string(_hash);
+	return nil;
 }
 
 func (pkt Packet) Decrypt_data(key []byte) (string, error) {
