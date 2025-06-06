@@ -5,6 +5,7 @@ import (
 	"axion/utils"
 	"encoding/json"
 	"net"
+	"os"
 )
 
 func HandleUser(sockfd net.Conn, username string, key []byte) {
@@ -14,13 +15,13 @@ func HandleUser(sockfd net.Conn, username string, key []byte) {
 		for {
 			size, err := sockfd.Read(buffer);
 			if err != nil {
-				fmt.Printf("[!] Error reading from server !");
-				return;
+				fmt.Printf("\n[!] Error reading from server !");
+				os.Exit(1);
 			}
 
 			var pkt axion.Packet;
 			if err := json.Unmarshal(buffer[:size], &pkt); err != nil {
-				fmt.Printf("[!] Error parsing packet from server!");
+				fmt.Printf("\n[!] Error parsing packet from server!");
 				return;
 			}
 
@@ -33,11 +34,12 @@ func HandleUser(sockfd net.Conn, username string, key []byte) {
 			// decode first
 			decode_data, err := pkt.Decrypt_data(key);
 			if err != nil {
-				fmt.Printf("[!] Error: decrypting message %x\n", err);
+				fmt.Printf("\n[!] Error: decrypting message %x\n", err);
 				return;
 			}
 
 			fmt.Printf("\r[ %s ] %s\n", pkt.Sender, decode_data);
+			fmt.Printf("[ %s ] ", username);
 		}
 	}();
 
@@ -45,7 +47,7 @@ func HandleUser(sockfd net.Conn, username string, key []byte) {
 		fmt.Printf("[ %s ] ", username);
 		input, err := axion.Fgets();
 		if err != nil {
-			fmt.Printf("[!] Error getting input %x\n", err);
+			fmt.Printf("\n[!] Error getting input %x\n", err);
 			continue;
 		}
 
@@ -54,12 +56,12 @@ func HandleUser(sockfd net.Conn, username string, key []byte) {
 
 		encoded, err := json.Marshal(pkt);
 		if err != nil {
-			fmt.Printf("[!] Error marshalling packey!");
+			fmt.Printf("\n[!] Error marshalling packey!");
 			continue;
 		}
 
 		if _, err := sockfd.Write(encoded); err != nil {
-			fmt.Printf("[!] Error writting to socket %x\n", err);
+			fmt.Printf("\n[!] Error writting to socket %x\n", err);
 			return;
 		}
 	}

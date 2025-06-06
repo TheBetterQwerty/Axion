@@ -39,16 +39,13 @@ func unicast(pkt *axion.Packet) {
 		return;
 	}
 
-	for username, fd := range Users {
-		if (*pkt).Reciever != username {
-			continue;
-		}
+	username := (*pkt).Reciever;
+	fd := Users[username];
 
-		if _, err := fd.Write(encoded); err != nil {
-			fmt.Printf("[!] Error sending data to %s\n", username);
-		} else {
-			fmt.Printf("[+] Sent packet to %s\n", username); // DBG
-		}
+	if _, err := fd.Write(encoded); err != nil {
+		fmt.Printf("[!] Error sending data to %s\n", username);
+	} else {
+		fmt.Printf("[+] Sent packet to %s\n", username); // DBG
 	}
 }
 
@@ -71,14 +68,42 @@ func handler(fd net.Conn) {
 			fmt.Printf("[!] Error Unmarshal the packet!\n");
 			return;
 		}
+		username = login.Sender;
 
-		Users[login.Sender] = fd; /* Handle same username case and name cannot be SERVER */
+		/* If username same as SERVER */
+		if username == "SERVER" {
+			pkt := axion.New("SERVER", username);
+			pkt.Data = "\"SERVER\" is reserved for system use";
+			encoded, _ := json.Marshal(pkt);
+			if _, err := fd.Write(encoded); err != nil {
+				fmt.Printf("[!] Error sending data to %s\n", username);
+			} else {
+				fmt.Printf("[+] Sent packet to %s\n", username); // DBG
+				fmt.Printf("[$] client tried to use reserved name\n");
+			}
+			return;
+		}
+
+		/* If username exists */
+		if exists := Users[username]; exists != nil {
+			pkt := axion.New("SERVER", username);
+			pkt.Data = "Username already taken";
+			encoded, _ := json.Marshal(pkt);
+			if _, err := fd.Write(encoded); err != nil {
+				fmt.Printf("[!] Error sending data to %s\n", username);
+			} else {
+				fmt.Printf("[+] Sent packet to %s\n", username); // DBG
+				fmt.Printf("[$] client tried to use existing name\n");
+
+			}
+			return;
+		}
+
+		Users[username] = fd;
 
 		pkt := axion.New("SERVER", "SERVER");
-		pkt.Data = fmt.Sprintf("%s joined the chat!", login.Sender);
+		pkt.Data = fmt.Sprintf("%s joined the chat!", username);
 		go broadcast(&pkt);
-
-		username = login.Sender;
 	}
 
 	for {
