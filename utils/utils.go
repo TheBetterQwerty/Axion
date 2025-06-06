@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"io"
 	"fmt"
+	"bufio"
+	"os"
 )
 
 type Packet struct {
@@ -41,7 +43,7 @@ func (pkt *Packet) Set_data(key []byte, data string) error {
 	pkt.Encrypted = true;
 	pkt.Data = ciphertext;
 	pkt.Nonce = iv;
-	pkt.Hash = string(_hash);
+	pkt.Hash = hex.EncodeToString(_hash);
 	return nil;
 }
 
@@ -49,7 +51,7 @@ func (pkt Packet) Decrypt_data(key []byte) (string, error) {
 	if plaintext, err := decrypt_AES(key, pkt.Data, pkt.Nonce); err != nil {
 		return "", err;
 	} else {
-		_hash := string(hash(plaintext));
+		_hash := hex.EncodeToString(hash(plaintext));
 		if _hash == pkt.Hash {
 			return plaintext, nil;
 		} else {
@@ -60,11 +62,21 @@ func (pkt Packet) Decrypt_data(key []byte) (string, error) {
 
 /* Packet functions ends */
 
+func Fgets() (string, error) {
+	reader := bufio.NewReader(os.Stdin);
+	text, err := reader.ReadString('\n');
+	if err != nil {
+		return "", err;
+	}
+
+	return text, nil;
+}
+
 func GetKey() []byte {
-	var passwd string;
 	fmt.Printf("[+] Enter password : ");
-	if _, err := fmt.Scanln(&passwd); err != nil {
-		panic("[!] Error getting key!");
+	passwd, err := Fgets();
+	if err != nil {
+		panic(err);
 	}
 
 	return hash(passwd);
