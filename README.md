@@ -41,9 +41,4 @@ make client
 ./client/main 
 ```
 
-## License
-```
-This project is licensed under the terms provided in the [MIT License](LICENSE) file.
-```
-
 
