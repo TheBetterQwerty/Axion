@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net"
 	"os"
+	"strings"
 )
 
 func HandleUser(sockfd net.Conn, username string, key []byte) {
@@ -15,7 +16,7 @@ func HandleUser(sockfd net.Conn, username string, key []byte) {
 		for {
 			size, err := sockfd.Read(buffer);
 			if err != nil {
-				fmt.Printf("\n[!] Error reading from server !");
+				fmt.Printf("\n[!] Error reading from server !\n");
 				os.Exit(1);
 			}
 
@@ -26,8 +27,9 @@ func HandleUser(sockfd net.Conn, username string, key []byte) {
 			}
 
 			/* Handle server messages that ain't encrypted */
-			if pkt.Encrypted == false {
+			if !pkt.Encrypted {
 				fmt.Printf("\r[ %s ] %s\n", pkt.Sender, pkt.Data);
+				fmt.Printf("[ %s ] ", username);
 				continue;
 			}
 
@@ -38,20 +40,44 @@ func HandleUser(sockfd net.Conn, username string, key []byte) {
 				return;
 			}
 
-			fmt.Printf("\r[ %s ] %s\n", pkt.Sender, decode_data);
+			if pkt.Reciever != "SERVER" {
+				fmt.Printf("\r[ %s (private) ] %s\n", pkt.Sender, decode_data);
+			} else {
+				fmt.Printf("\r[ %s ] %s\n", pkt.Sender, decode_data);
+			}
+
 			fmt.Printf("[ %s ] ", username);
 		}
 	}();
 
 	for {
-		fmt.Printf("[ %s ] ", username);
+		reciever := "SERVER";
+
+		fmt.Printf("\r[ %s ] ", username); // remove if problems
 		input, err := axion.Fgets();
 		if err != nil {
 			fmt.Printf("\n[!] Error getting input %x\n", err);
 			continue;
 		}
 
-		pkt := axion.New(username, "SERVER"); // handle private msg later
+		{
+			/* Parse Input
+			 * TODO: Add other commands like /help or /users
+			 */
+
+			if data, found := strings.CutPrefix(input, "/msg "); found {
+				x := strings.Split(data, " ");
+				reciever = x[0];
+				input = strings.Join(x[1:], " ");
+			}
+
+			if _, found := strings.CutPrefix(input, "/exit"); found {
+				fmt.Printf("\r[!] Exitting\n");
+				return;
+			}
+		}
+
+		pkt := axion.New(username, reciever);
 		pkt.Set_data(key, input);
 
 		encoded, err := json.Marshal(pkt);
@@ -95,4 +121,5 @@ func main() {
 	}
 
 	HandleUser(sockfd, username, passwd);
+	fmt.Printf("\n");
 }
