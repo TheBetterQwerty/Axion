@@ -14,7 +14,7 @@ func broadcast(pkt *axion.Packet) {
 	/* Send Everyone except sender */
 	encoded, err := json.Marshal(*pkt);
 	if err != nil {
-		fmt.Printf("[!] Error %x\n", err);
+		fmt.Printf("[!] Error %v\n", err);
 		return;
 	}
 
@@ -35,12 +35,33 @@ func unicast(pkt *axion.Packet) {
 	/* Send only reciever */
 	encoded, err := json.Marshal(*pkt);
 	if err != nil {
-		fmt.Printf("[!] Error: %x\n", err);
+		fmt.Printf("[!] Error: %v\n", err);
 		return;
 	}
 
 	username := (*pkt).Reciever;
-	fd := Users[username];
+	fd, found := Users[username];
+	if !found {
+		// send info that the reciever doesnt exist
+		new_pkt := axion.New("SERVER", (*pkt).Sender);
+		new_pkt.Data = fmt.Sprintf("\"%s\" user doesn't exists", username);
+
+		if _fd, exists := Users[pkt.Sender]; exists {
+			pkt_encoded, err := json.Marshal(new_pkt);
+			if err != nil {
+				fmt.Printf("[!] Error marshaling text!\n");
+				return;
+			}
+
+			if _, err := _fd.Write(pkt_encoded); err != nil {
+				fmt.Printf("[!] Error writting to client!\n");
+				return;
+			}
+		}
+
+		fmt.Printf("%s\n", new_pkt.Data); // DBG
+		return;
+	}
 
 	if _, err := fd.Write(encoded); err != nil {
 		fmt.Printf("[!] Error sending data to %s\n", username);
@@ -85,7 +106,7 @@ func handler(fd net.Conn) {
 		}
 
 		/* If username exists */
-		if exists := Users[username]; exists != nil {
+		if _, exists := Users[username]; exists {
 			pkt := axion.New("SERVER", username);
 			pkt.Data = "Username already taken";
 			encoded, _ := json.Marshal(pkt);
