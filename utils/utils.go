@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/hmac"
 	"crypto/cipher"
 	"encoding/hex"
 	"strings"
@@ -35,16 +36,23 @@ func New(sender string, reciever string) Packet {
 }
 
 func (pkt *Packet) Set_data(key []byte, data string) error {
-	_hash := hash(data);
 	ciphertext, iv, err := encrypt_data(key, data);
 	if err != nil {
 		fmt.Printf("[!] Error %s\n", err);
 		return err;
 	}
+
+	mac := hmac.New(sha256.New, key);
+	mac.Write([]byte(pkt.Sender));
+	mac.Write([]byte(pkt.Reciever));
+	mac.Write(iv);
+	mac.Write([]byte(data));
+
 	pkt.Encrypted = true;
 	pkt.Data = ciphertext;
 	pkt.Nonce = iv;
-	pkt.Hash = hex.EncodeToString(_hash);
+	pkt.Hash = hex.EncodeToString(mac.Sum(nil));
+
 	return nil;
 }
 
@@ -52,15 +60,26 @@ func (pkt Packet) Decrypt_data(key []byte) (string, error) {
 	if plaintext, err := decrypt_AES(key, pkt.Data, pkt.Nonce); err != nil {
 		return "", err;
 	} else {
-		_hash := hex.EncodeToString(hash(plaintext));
-		if _hash == pkt.Hash {
-			return plaintext, nil;
-		} else {
-			return "Hashes dont match", nil;
+		msg_mac, err := hex.DecodeString(pkt.Hash);
+		if err != nil {
+			return "", nil;
 		}
+
+		mac := hmac.New(sha256.New, key);
+		mac.Write([]byte(pkt.Sender));
+		mac.Write([]byte(pkt.Reciever));
+		mac.Write(pkt.Nonce);
+		mac.Write([]byte(plaintext));
+
+		req_mac := mac.Sum(nil);
+
+		if hmac.Equal(msg_mac, req_mac) {
+			return plaintext, nil;
+		}
+
+		return "Hmac Doesnt match!", nil
 	}
 }
-
 /* Packet functions ends */
 
 func Fgets() (string, error) {
