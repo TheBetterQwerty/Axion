@@ -42,6 +42,11 @@ func unicast(pkt *axion.Packet) {
 	username := (*pkt).Reciever;
 	fd, found := Users[username];
 	if !found {
+		if pkt.Sender == "SERVER" {
+			fmt.Printf("[!] Error sending data user doesnt exists!\n");
+			return;
+		}
+
 		// send info that the reciever doesnt exist
 		new_pkt := axion.New("SERVER", (*pkt).Sender);
 		new_pkt.Data = fmt.Sprintf("\"%s\" user doesn't exists", username);
@@ -68,6 +73,21 @@ func unicast(pkt *axion.Packet) {
 	} else {
 		fmt.Printf("[+] Sent packet to %s\n", username); // DBG
 	}
+}
+
+func send_current_users(reciever string) {
+	pkt := axion.New("SERVER", reciever);
+	pkt.Data = "CLIENTS";
+
+	for i, _ := range Users {
+		if i == reciever {
+			continue;
+		}
+
+		pkt.Data += fmt.Sprintf("%s ", i);
+	}
+
+	unicast(&pkt);
 }
 
 func handler(fd net.Conn) {
@@ -138,6 +158,13 @@ func handler(fd net.Conn) {
 		if err := json.Unmarshal(buffer[:size], &packet); err != nil {
 			fmt.Printf("[!] Error Unmarshal the packet!\n");
 			break;
+		}
+
+		if !packet.Encrypted {
+			// checks the data if its SEND USERS then send users list
+			if packet.Data == "CLIENTS" {
+				send_current_users(packet.Sender);
+			}
 		}
 
 		if packet.Reciever == "SERVER" {

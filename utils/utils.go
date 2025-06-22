@@ -92,14 +92,18 @@ func Fgets() (string, error) {
 	return strings.TrimSuffix(text, "\n"), nil;
 }
 
-func GetKey() []byte {
-	fmt.Printf("[+] Enter password : ");
-	passwd, err := Fgets();
-	if err != nil {
-		panic(err);
-	}
+func GetKey(password string) []byte {
+	return hash(password);
+}
 
-	return hash(passwd);
+func Get_color(name string) string {
+	a := hash(name);
+
+	clamp := func(x byte) byte {
+		return 64 + (x % 128);
+	};
+
+	return fmt.Sprintf("#%02x%02x%02x", clamp(a[0]), clamp(a[1]), clamp(a[2]));
 }
 
 func hash(txt string) []byte {
