@@ -5,6 +5,7 @@ import (
 	"net"
 	"encoding/json"
 	"axion/utils"
+	"strings"
 )
 
 /* Stores the Active Users */
@@ -76,18 +77,26 @@ func unicast(pkt *axion.Packet) {
 }
 
 func send_current_users(reciever string) {
-	pkt := axion.New("SERVER", reciever);
-	pkt.Data = "CLIENTS";
+	fmt.Printf("[+] %s sent request\n", reciever);
 
-	for i, _ := range Users {
-		if i == reciever {
+	var users []string;
+	for username := range Users {
+		if username == reciever {
 			continue;
 		}
 
-		pkt.Data += fmt.Sprintf("%s ", i);
+		users = append(users, username);
 	}
 
-	unicast(&pkt);
+	pkt := axion.New("SERVER", reciever);
+	pkt.Data = "CLIENTS " + strings.Join(users, " ");
+
+	if _, found := Users[reciever]; !found {
+		fmt.Printf("[!] %s doesn't exist!\n", reciever);
+		return;
+	}
+
+	go unicast(&pkt);
 }
 
 func handler(fd net.Conn) {
@@ -162,9 +171,12 @@ func handler(fd net.Conn) {
 
 		if !packet.Encrypted {
 			// checks the data if its SEND USERS then send users list
+			fmt.Printf("[+] Unencrypted data recieved!\n");
 			if packet.Data == "CLIENTS" {
+				fmt.Printf("SENDER -> %s\t RECIEVER -> %s\n", packet.Sender, packet.Reciever);
 				send_current_users(packet.Sender);
 			}
+			continue;
 		}
 
 		if packet.Reciever == "SERVER" {

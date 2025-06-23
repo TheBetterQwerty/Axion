@@ -5,7 +5,6 @@ import (
 	"axion/utils"
 	"encoding/json"
 	"net"
-	"os"
 	"strings"
 	//"time"
 
@@ -16,10 +15,12 @@ import (
 var inputChan = make(chan string);
 var outputChan = make(chan string);
 var chatList *tview.List;
+var app *tview.Application;
+var username string;
 
 func main() {
-	app := tview.NewApplication();
-	var username, password string;
+	app = tview.NewApplication();
+	var password string;
 
 	form := tview.NewForm().
 		AddInputField("Username", "", 30, nil, func(text string) {
@@ -45,9 +46,9 @@ func main() {
 			key := axion.GetKey(password); // should take password and return the hash
 
 			go handle_server_read(sockfd, key);
-			go handle_server_write(sockfd, username, key);
+			go handle_server_write(sockfd, key);
 
-			ChatUI(app, username);
+			ChatUI(username);
 		}).
 		AddButton("Quit", func() {
 			app.Stop()
@@ -86,7 +87,7 @@ func main() {
 	}
 }
 
-func ChatUI(app *tview.Application, username string) {
+func ChatUI(username string) {
 	chatList = tview.NewList().ShowSecondaryText(false);
 	usr_color := axion.Get_color(username);
 
@@ -142,7 +143,6 @@ func ChatUI(app *tview.Application, username string) {
 
 		if event.Key() == tcell.KeyCtrlC {
 			app.Stop()
-			fmt.Printf("exiting\n") // dbg
 			return nil
 		}
 
@@ -182,14 +182,16 @@ func handle_server_read(sockfd net.Conn, key []byte) {
 		if err != nil {
 			outputChan <- fmt.Sprintf("[!] Error: %v\n", err);
 			close(outputChan);
-			os.Exit(1);
+			handle_error();
+			break;
 		}
 
 		var pkt axion.Packet;
 		if err := json.Unmarshal(buffer[:size], &pkt); err != nil {
 			outputChan <- fmt.Sprintf("[!] Error: %v\n", err);
 			close(outputChan);
-			os.Exit(1);
+			handle_error();
+			break;
 		}
 
 		color := axion.Get_color(pkt.Sender);
@@ -197,29 +199,34 @@ func handle_server_read(sockfd net.Conn, key []byte) {
 		if !pkt.Encrypted {
 			if pkt.Sender == "SERVER" {
 				if data, found := strings.CutPrefix(pkt.Data, "CLIENTS "); found {
-					nClients := strings.Split(data, " ");
+					nClients := strings.Fields(data);
 					if len(nClients) < 1 {
 						continue;
 					}
 
-					nClients = nClients[1:];
-
-					for _, clients := range nClients {
-						chatList.AddItem(clients, "", 0, nil);
-					}
+					app.QueueUpdateDraw(func() {
+						chatList.Clear()
+						for _, client := range nClients {
+							chatList.AddItem(client, "", 0, nil)
+						}
+					})
+					continue;
 				}
-				continue;
 			}
 
 			outputChan <- fmt.Sprintf("[red][ %s ][-] %s", pkt.Sender, pkt.Data);
-			client_list(sockfd, pkt.Reciever);
+
+			if strings.Contains(pkt.Data, "joined") || strings.Contains(pkt.Data, "left") {
+				client_list(sockfd, username);
+			}
+
 			continue;
 		}
 
 		decrypted_data, err := pkt.Decrypt_data(key);
 		if err != nil {
 			outputChan <- fmt.Sprintf("[!] Error: %v\n", err);
-			os.Exit(1);
+			handle_error();
 		}
 
 		if pkt.Reciever == "SERVER" {
@@ -230,7 +237,7 @@ func handle_server_read(sockfd net.Conn, key []byte) {
 	}
 }
 
-func handle_server_write(sockfd net.Conn, username string, key []byte) {
+func handle_server_write(sockfd net.Conn, key []byte) {
 	for msg := range inputChan {
 		reciever := "SERVER";
 
@@ -249,7 +256,7 @@ func handle_server_write(sockfd net.Conn, username string, key []byte) {
 			}
 
 			if _, found := strings.CutPrefix(msg, "/exit"); found {
-				os.Exit(1);
+				handle_error();
 			}
 		}
 
@@ -282,4 +289,10 @@ func client_list(fd net.Conn, username string) {
 		fmt.Printf("[!] Error writting to socket!\n");
 		return;
 	}
+}
+
+func handle_error() {
+	app.QueueUpdateDraw(func() {
+		app.Stop();
+	})
 }
