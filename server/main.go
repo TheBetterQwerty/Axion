@@ -81,10 +81,6 @@ func send_current_users(reciever string) {
 
 	var users []string;
 	for username := range Users {
-		if username == reciever {
-			continue;
-		}
-
 		users = append(users, username);
 	}
 

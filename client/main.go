@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"net"
 	"strings"
-	//"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -22,19 +21,25 @@ func main() {
 	app = tview.NewApplication();
 	var password string;
 
+	input := tview.NewInputField().
+		SetLabel("Server Ip").
+		SetText("127.0.0.1:8080").
+		SetFieldWidth(30);
+
 	form := tview.NewForm().
+		AddFormItem(input).
 		AddInputField("Username", "", 30, nil, func(text string) {
-			username = text
+			username = text;
 		}).
 		AddPasswordField("Password", "", 30, '*', func(text string) {
-			password = text
+			password = text;
 		}).
 		AddButton("Submit!", func() {
 			if strings.TrimSpace(username) == "" {
 				return;
 			}
 
-			sockfd, err := net.Dial("tcp", "127.0.0.1:8080");
+			sockfd, err := net.Dial("tcp", input.GetText());
 			if err != nil {
 				panic(fmt.Sprintf("Failed to connect to server: %x\n", err));
 			}
@@ -93,7 +98,6 @@ func ChatUI(username string) {
 
 	chatList.SetBorder(true).SetTitle(" Users ");
 	chatList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		// Eat all input — list becomes "readonly"
 		return nil;
 	})
 
@@ -121,7 +125,10 @@ func ChatUI(username string) {
 					if len(splits) < 2 {
 						return;
 					}
-					formated_str = fmt.Sprintf("[%s][ %s (%s) ][-] %s\n", usr_color, username, splits[0], strings.Join(splits[1:], " "));
+					usr2_color := axion.Get_color(splits[0]);
+					formated_str = fmt.Sprintf("[%s][ %s[-][%s] (%s) ][-] %s\n", usr_color, username,
+						usr2_color, splits[0],
+						strings.Join(splits[1:], " "));
 				} else {
 					formated_str = fmt.Sprintf("[%s][ %s ][-] %s\n", usr_color, username, text)
 				}
@@ -257,6 +264,7 @@ func handle_server_write(sockfd net.Conn, key []byte) {
 
 			if _, found := strings.CutPrefix(msg, "/exit"); found {
 				handle_error();
+				break;
 			}
 		}
 

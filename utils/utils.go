@@ -7,6 +7,7 @@ import (
 	"crypto/hmac"
 	"crypto/cipher"
 	"encoding/hex"
+	"time"
 	"strings"
 	"io"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 )
 
 type Packet struct {
+	Time 		string
 	Encrypted	bool   // 1 byte only
 	Sender 		string
 	Reciever 	string
@@ -25,7 +27,9 @@ type Packet struct {
 
 /* Functions to be used with Packet */
 func New(sender string, reciever string) Packet {
+	now := time.Now().In(time.FixedZone("IST", 19800))
 	return Packet {
+		fmt.Sprintf("%v", now.Format("15:04:05")),
 		false,
 		sender,
 		reciever,
@@ -43,6 +47,7 @@ func (pkt *Packet) Set_data(key []byte, data string) error {
 	}
 
 	mac := hmac.New(sha256.New, key);
+	mac.Write([]byte(pkt.Time));
 	mac.Write([]byte(pkt.Sender));
 	mac.Write([]byte(pkt.Reciever));
 	mac.Write(iv);
@@ -66,6 +71,7 @@ func (pkt Packet) Decrypt_data(key []byte) (string, error) {
 		}
 
 		mac := hmac.New(sha256.New, key);
+		mac.Write([]byte(pkt.Time));
 		mac.Write([]byte(pkt.Sender));
 		mac.Write([]byte(pkt.Reciever));
 		mac.Write(pkt.Nonce);
